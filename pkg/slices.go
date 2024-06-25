@@ -23,3 +23,15 @@ func SortedInsert[T cmp.Ordered](ts []T, t T, logger *slog.Logger) []T {
 	}
 	return slices.Insert(ts, i, t)
 }
+
+func DuplicateElements[T cmp.Ordered](ts []T) []T {
+	var res []T
+	for i := 0; i < len(ts); i++ {
+		for j := i + 1; j < len(ts); j++ {
+			if ts[i] == ts[j] {
+				res = append(res, ts[i])
+			}
+		}
+	}
+	return res
+}
