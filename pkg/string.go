@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode"
 )
 
 // ConvertLineToCRLF converts a line ending of \n or \r to
@@ -31,24 +32,38 @@ func ConvertLineToCRLF(s string) string {
 	return res
 }
 
+type LDIFRegexps struct {
+	EmptyValue  *regexp.Regexp
+	DoubleColon *regexp.Regexp
+}
+
+func NewLDIFRegexps() LDIFRegexps {
+	return LDIFRegexps{
+		DoubleColon: regexp.MustCompile("(?m)(^[^#][a-zA-Z]+:):"),
+		EmptyValue:  regexp.MustCompile("(?m)^[^#][a-zA-Z]+:$[\n\r]"),
+	}
+}
+
 // DissolveEmptyValues removes all empty value lines in `s`.
 // This is a work-around for https://github.com/go-ldap/ldif/issues/21.
-func DissolveEmptyValues(s string) string {
-	start := time.Now()
-	re := regexp.MustCompile("(?m)^[^#][a-zA-Z]+:$[\n\r]")
-	res := re.ReplaceAllString(s, "")
-	fmt.Fprintf(os.Stderr, "execution time of %s: %s\n", GetCurrentFuncName(), time.Since(start).String())
-	return res
+func (l LDIFRegexps) DissolveEmptyValues(s string, t ...bool) string {
+	if len(t) > 0 {
+		if t[1] {
+			defer TrackExecutionTime(time.Now())
+		}
+	}
+	return l.EmptyValue.ReplaceAllString(s, "")
 }
 
 // DissolveDoubleColon replaces all `t::` with `t:` in `s`.
 // This is a work-around for https://github.com/go-ldap/ldif/issues/23.
-func DissolveDoubleColon(s string) string {
-	start := time.Now()
-	re := regexp.MustCompile("(?m)(^[^#][a-zA-Z]+:):")
-	res := re.ReplaceAllString(s, "$1")
-	fmt.Fprintf(os.Stderr, "execution time of %s: %s\n", GetCurrentFuncName(), time.Since(start).String())
-	return res
+func (l LDIFRegexps) DissolveDoubleColon(s string, t ...bool) string {
+	if len(t) > 0 {
+		if t[1] {
+			defer TrackExecutionTime(time.Now())
+		}
+	}
+	return l.DoubleColon.ReplaceAllString(s, "$1")
 }
 
 func SplitMailString(s string) (string, string) {
@@ -80,6 +95,37 @@ func HasSuffixMultiple(s string, input []string) bool {
 		if res {
 			return res
 		}
+	}
+	return res
+}
+
+func IsUpper(s string) bool {
+	for _, r := range s {
+		if !unicode.IsUpper(r) && unicode.IsLetter(r) {
+			return false
+		}
+	}
+	return true
+}
+
+func IsLower(s string) bool {
+	for _, r := range s {
+		if !unicode.IsLower(r) && unicode.IsLetter(r) {
+			return false
+		}
+	}
+	return true
+}
+
+func TrimSubstr(s string, substr string) string {
+	var res string
+	for {
+		res = strings.TrimPrefix(s, substr)
+		res = strings.TrimSuffix(res, substr)
+		if res == s { // exit if nothing was trimmed from s
+			break
+		}
+		s = res // update to last result
 	}
 	return res
 }
