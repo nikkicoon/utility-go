@@ -47,10 +47,9 @@ func NewLDIFRegexps() LDIFRegexps {
 // DissolveEmptyValues removes all empty value lines in `s`.
 // This is a work-around for https://github.com/go-ldap/ldif/issues/21.
 func (l LDIFRegexps) DissolveEmptyValues(s string, t ...bool) string {
+	start := time.Now()
 	if len(t) > 0 {
-		if t[1] {
-			defer TrackExecutionTime(time.Now())
-		}
+		defer TrackExecutionTime(start)
 	}
 	return l.EmptyValue.ReplaceAllString(s, "")
 }
@@ -58,10 +57,9 @@ func (l LDIFRegexps) DissolveEmptyValues(s string, t ...bool) string {
 // DissolveDoubleColon replaces all `t::` with `t:` in `s`.
 // This is a work-around for https://github.com/go-ldap/ldif/issues/23.
 func (l LDIFRegexps) DissolveDoubleColon(s string, t ...bool) string {
+	start := time.Now()
 	if len(t) > 0 {
-		if t[1] {
-			defer TrackExecutionTime(time.Now())
-		}
+		defer TrackExecutionTime(start)
 	}
 	return l.DoubleColon.ReplaceAllString(s, "$1")
 }

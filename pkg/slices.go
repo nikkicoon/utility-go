@@ -35,3 +35,22 @@ func DuplicateElements[T cmp.Ordered](ts []T) []T {
 	}
 	return res
 }
+
+func PrependInsertReversed[T cmp.Ordered](ts []T, t ...T) []T {
+	var null T
+	if len(t) > 0 {
+		for _, v := range t {
+			ts = append(ts, null)
+			copy(ts[1:], ts)
+			ts[0] = v
+		}
+	}
+	return ts
+}
+
+func PrependInsertSliced[T cmp.Ordered](ts []T, t ...T) []T {
+	if len(t) > 0 {
+		ts = append(t, ts...)
+	}
+	return ts
+}
