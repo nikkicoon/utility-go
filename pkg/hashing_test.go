@@ -1,9 +1,12 @@
 package pkg_test
 
 import (
+	"fmt"
 	"github.com/nikkicoon/utility-go/pkg"
 	"github.com/stretchr/testify/assert"
+	"math/rand"
 	"testing"
+	"time"
 )
 
 func TestCalculateHash(t *testing.T) {
@@ -23,4 +26,37 @@ func BenchmarkCalculateHashGoRoutines(b *testing.B) {
 		go pkg.CalculateHashBin("test")
 	}
 	b.Elapsed()
+}
+
+func generateRandomString(length int) string {
+	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	seed := rand.NewSource(time.Now().UnixNano())
+	random := rand.New(seed)
+	result := make([]byte, 0, length)
+	for i := range result {
+		result[i] = charset[random.Intn(len(charset))]
+	}
+	return string(result)
+}
+
+func gen5000000strings() []string {
+	var res []string
+	for i := 0; i < 5_000_000; i++ {
+		res = append(res, generateRandomString(20))
+	}
+	return res
+}
+
+func BenchmarkCalculateHashSHA1_5000000(b *testing.B) {
+	i := gen5000000strings()
+	//var c = 0
+	b.StartTimer()
+	for _, v := range i {
+		//c++
+		_ = pkg.CalculateHashSHA1(v)
+		//fmt.Println(b.Elapsed())
+	}
+	b.StopTimer()
+	//fmt.Println(c)
+	fmt.Println(b.Elapsed())
 }

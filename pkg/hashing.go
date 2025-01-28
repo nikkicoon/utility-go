@@ -36,3 +36,20 @@ func CalculateHashBin(key string) []byte {
 
 	*/
 }
+
+// CalculateHashSHA1 returns the string representation of
+// the sha1 value for a given string (hex, base16).
+func CalculateHashSHA1(key string) string {
+	// SHA1 hash
+	hash := sha1.New()
+	hash.Write([]byte(key))
+	hashBytes := hash.Sum(nil)
+	// hexadecimal conversion
+	hexSHA1 := hex.EncodeToString(hashBytes)
+	// integer base16 conversion
+	res, success := new(big.Int).SetString(hexSHA1, 16)
+	if !success {
+		panic("failed parsing big int from hex")
+	}
+	return res.String()
+}

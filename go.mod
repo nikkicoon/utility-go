@@ -5,6 +5,7 @@ go 1.22
 require (
 	github.com/phuslu/log v1.0.107
 	github.com/stretchr/testify v1.9.0
+	golang.org/x/sys v0.27.0
 )
 
 require (
