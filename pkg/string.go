@@ -49,7 +49,7 @@ func NewLDIFRegexps() LDIFRegexps {
 func (l LDIFRegexps) DissolveEmptyValues(s string, t ...bool) string {
 	start := time.Now()
 	if len(t) > 0 {
-		defer TrackExecutionTime(start)
+		defer TrackExecutionTime(nil, start)
 	}
 	return l.EmptyValue.ReplaceAllString(s, "")
 }
@@ -59,7 +59,7 @@ func (l LDIFRegexps) DissolveEmptyValues(s string, t ...bool) string {
 func (l LDIFRegexps) DissolveDoubleColon(s string, t ...bool) string {
 	start := time.Now()
 	if len(t) > 0 {
-		defer TrackExecutionTime(start)
+		defer TrackExecutionTime(nil, start)
 	}
 	return l.DoubleColon.ReplaceAllString(s, "$1")
 }
@@ -126,4 +126,10 @@ func TrimSubstr(s string, substr string) string {
 		s = res // update to last result
 	}
 	return res
+}
+
+func FilepathParts(in string) (out []string) {
+	return strings.FieldsFunc(in, func(c rune) bool {
+		return os.PathSeparator == c
+	})
 }

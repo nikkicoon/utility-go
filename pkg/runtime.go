@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"fmt"
+	"github.com/phuslu/log"
 	"os"
 	"runtime"
 	"time"
@@ -17,13 +18,31 @@ func GetCurrentFuncName(parent ...bool) string {
 	} else {
 		pc, _, _, _ = runtime.Caller(1)
 	}
-	return fmt.Sprintf("%s", runtime.FuncForPC(pc).Name())
+	return runtime.FuncForPC(pc).Name()
 }
 
-func TrackExecutionTime(pre time.Time, msg ...string) {
-	if len(msg) == 0 {
-		_, _ = fmt.Fprintf(os.Stderr, "%s\texecution time of %s: %s\n", time.Now(), GetCurrentFuncName(true), time.Since(pre).String())
-	} else {
-		_, _ = fmt.Fprintf(os.Stderr, "%s\texecution time of %s (%s): %s\n", time.Now(), GetCurrentFuncName(true), msg[0], time.Since(pre).String())
+// TrackExecutionTime takes a [time.Time] value and an optional message, and returns
+// a log message (or [fmt.Fprintf] if logger was nil) with details on the time spent
+// executing a function.
+func TrackExecutionTime(logger *log.Logger, pre time.Time, msg ...string) {
+	switch logger {
+	case nil:
+		switch len(msg) {
+		case 0:
+			_, _ = fmt.Fprintf(os.Stderr, "%s\texecution time of %s: %s\n", time.Now(), GetCurrentFuncName(true), time.Since(pre).String())
+		default:
+			_, _ = fmt.Fprintf(os.Stderr, "%s\texecution time of %s (%s): %s\n", time.Now(), GetCurrentFuncName(true), msg[0], time.Since(pre).String())
+		}
+	default:
+		switch len(msg) {
+		case 0:
+			logger.Trace().Str("function name", GetCurrentFuncName(true)).Str("execution time", time.Since(pre).String()).Msg("")
+		default:
+			logger.Trace().Str("function name", GetCurrentFuncName(true)).Str("execution time", time.Since(pre).String()).Str("context message", msg[0]).Msg("")
+		}
 	}
+}
+
+func TrackTimeSeconds(pre time.Time, fn func(float64)) {
+	fn(time.Since(pre).Seconds())
 }
