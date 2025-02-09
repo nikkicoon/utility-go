@@ -19,7 +19,9 @@ func SortedInsert[T cmp.Ordered](ts []T, t T, logger *slog.Logger) []T {
 	// find slot
 	i, ok := slices.BinarySearch(ts, t)
 	if !ok {
-		logger.Debug("value not found in slice", slog.Any("value", t))
+		if logger != nil {
+			logger.Debug("value not found in slice", slog.Any("value", t))
+		}
 	}
 	return slices.Insert(ts, i, t)
 }

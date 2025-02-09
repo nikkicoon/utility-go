@@ -7,6 +7,16 @@ import (
 	"testing"
 )
 
+func TestSortedInsert(t *testing.T) {
+	//logger := pkg.InitializeLogger("debug", "consolewriter", "", true, 1, pkg.SyslogConn{})
+	var c []string
+	c = pkg.SortedInsert(c, "one", nil)
+	assert.NotEmpty(t, c)
+	c = pkg.SortedInsert(c, "two", nil)
+	r := []string{"one", "two"}
+	assert.Equal(t, c, r)
+}
+
 func TestDuplicateElements(t *testing.T) {
 	var in []int
 	in = append(in, 1, 2, 3, 1, 5, 6, 1)
