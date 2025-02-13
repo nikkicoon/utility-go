@@ -27,3 +27,8 @@ func TestLineCounter(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, count, 5)
 }
+
+func TestSymlinkFiles(t *testing.T) {
+	assert.Nil(t, pkg.SymlinkFiles(nil, "/dev/null", "tmp"))
+	assert.NotNil(t, pkg.SymlinkFiles(nil, "marxisminmycomputerohno", "tmp"))
+}

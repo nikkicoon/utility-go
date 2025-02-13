@@ -88,25 +88,52 @@ func LineCounter(logger *log.Logger, r io.Reader, tFlag ...bool) (int, error) {
 	return c, nil
 }
 
-func SymlinkFiles(x string, y string) error {
-	x, err := filepath.Abs(x)
+func SymlinkFiles(logger *log.Logger, origin string, target string) error {
+	origin, err := filepath.Abs(origin)
 	if err != nil {
 		return err
 	}
-	y, err = filepath.Abs(y)
+	target, err = filepath.Abs(target)
 	if err != nil {
 		return err
 	}
-	if _, err = os.Lstat(y); err == nil {
-		if err = os.Remove(y); err != nil {
+	if _, err = os.Lstat(target); err == nil {
+		if err = os.Remove(target); err != nil {
 			return fmt.Errorf("failed to unlink: %+v", err)
 		}
 	} else if os.IsNotExist(err) {
-		return fmt.Errorf("failed to check symlink: %+v", err)
+		// warning, the file could just not exist because it was not yet created
+		switch logger {
+		case nil:
+			_, _ = fmt.Fprintf(os.Stderr, "WARNING: failed to check symlink: %+v\n", err)
+		default:
+			logger.Warn().Msgf("failed to check symlink: %+v", err)
+		}
 	}
-	if err = os.Symlink(x, y); err != nil {
+	if err = os.Symlink(origin, target); err != nil {
 		return fmt.Errorf("failed to symlink: %+v", err)
+	} else {
+		// no error, but is it a broken symlink?
+		_, err = os.Stat(target)
+		if os.IsNotExist(err) {
+			switch logger {
+			case nil:
+				_, _ = fmt.Fprintf(os.Stderr, "broken symlink: %+v\n", err)
+			default:
+				logger.Info().Msgf("broken symlink: %+v", err)
+			}
+			if err = os.Remove(target); err != nil {
+				return fmt.Errorf("failed to unlink: %+v", err)
+			}
+			return fmt.Errorf("broken symlink: %+v", err)
+		} else {
+			switch logger {
+			case nil:
+				_, _ = fmt.Fprintf(os.Stderr, "symlinked file %s to %s\n", origin, target)
+			default:
+				logger.Info().Msgf("symlinked file %s to %s", origin, target)
+			}
+		}
 	}
-	_,_ = fmt.Fprintf(os.Stderr, "symlinked file %s to %s", x, y)
 	return nil
 }
